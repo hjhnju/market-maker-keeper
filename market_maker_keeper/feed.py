@@ -74,9 +74,11 @@ class WebSocketFeed(Feed):
     @staticmethod
     def _get_header(ws_url: str):
         parsed_url = urlparse(ws_url)
-        basic_header = b64encode(bytes(parsed_url.username + ":" + parsed_url.password, "utf-8")).decode("utf-8")
 
-        return ["Authorization: Basic %s" % basic_header]
+        if parsed_url.username is not None and parsed_url.password is not None:
+            basic_header = b64encode(bytes(parsed_url.username + ":" + parsed_url.password, "utf-8")).decode("utf-8")
+            return ["Authorization: Basic %s" % basic_header]
+        return None
 
     def _background_run(self):
         while True:

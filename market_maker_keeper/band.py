@@ -135,6 +135,7 @@ class BuyBand(Band):
         price = self.order_price(order)
         price_min = self._apply_margin(target_price, self.min_margin)
         price_max = self._apply_margin(target_price, self.max_margin)
+        # logging.info(f"check includes, price:{price}, price_min:{price_min}, price_max:{price_max}")
         return (price > price_max) and (price <= price_min)
 
     def type(self) -> str:
@@ -380,30 +381,38 @@ class Bands:
         return new_orders, missing_amount
 
     def _new_buy_orders(self, our_buy_orders: list, our_buy_balance: Wad, target_price: Wad):
-        """Return buy orders which need to be placed to bring total amounts within all buy bands above minimums."""
+        """
+        Return buy orders which need to be placed to bring total amounts within all buy bands above minimums.
+        e.g. 对于tokenx/usdt交易对：buy是指要买的tokenx, sell(pay)是指要卖出的usdt
+        """
         assert(isinstance(our_buy_orders, list))
         assert(isinstance(our_buy_balance, Wad))
         assert(isinstance(target_price, Wad))
 
         new_orders = []
-        limit_amount = self.buy_limits.available_limit(time.time())
-        missing_amount = Wad(0)
+        limit_buy_amount = self.buy_limits.available_limit(time.time())
+        missing_buy_amount = Wad(0)
 
         for band in self.buy_bands:
             orders = [order for order in our_buy_orders if band.includes(order, target_price)]
-            total_amount = self.total_amount(orders)
-            if total_amount < band.min_amount:
+            total_buy_amount = self.total_buy_amount(orders)
+
+            if total_buy_amount < band.min_amount:
                 price = band.avg_price(target_price)
-                pay_amount = Wad.min(band.avg_amount - total_amount, our_buy_balance, limit_amount)
-                buy_amount = pay_amount / price
-                missing_amount += Wad.max((band.avg_amount - total_amount) - our_buy_balance, Wad(0))
+
+                # 要购买的Token数量
+                buy_amount = Wad.min(band.avg_amount - total_buy_amount, limit_buy_amount)
+                # 待支付的Token数量, 如usdt
+                pay_amount = Wad.min(buy_amount*price, our_buy_balance)
+
+                missing_buy_amount += Wad.max((band.avg_amount - total_buy_amount), Wad(0))
                 if (price > Wad(0)) and (pay_amount >= band.dust_cutoff) and (pay_amount > Wad(0)) and (buy_amount > Wad(0)):
                     self.logger.info(f"Buy band (spread <{band.min_margin}, {band.max_margin}>,"
-                                     f" amount <{band.min_amount}, {band.max_amount}>) has amount {total_amount},"
+                                     f" amount <{band.min_amount}, {band.max_amount}>) has amount {total_buy_amount},"
                                      f" creating new buy order with price {price}")
 
                     our_buy_balance = our_buy_balance - pay_amount
-                    limit_amount = limit_amount - pay_amount
+                    limit_buy_amount = limit_buy_amount - buy_amount
 
                     new_orders.append(NewOrder(is_sell=False,
                                                price=price,
@@ -412,12 +421,17 @@ class Bands:
                                                buy_amount=buy_amount,
                                                band=band,
                                                confirm_function=lambda: self.buy_limits.use_limit(time.time(), pay_amount)))
+                    logging.info("new_buy_order, price:%s, buy_amount:%s, pay_amount:%s" % (price, buy_amount, pay_amount))
 
-        return new_orders, missing_amount
+        return new_orders, missing_buy_amount
 
     @staticmethod
     def total_amount(orders):
         return reduce(operator.add, map(lambda order: order.remaining_sell_amount, orders), Wad(0))
+
+    @staticmethod
+    def total_buy_amount(orders):
+        return reduce(operator.add, map(lambda order: order.remaining_buy_amount, orders), Wad(0))
 
     @staticmethod
     def _bands_overlap(bands: list):
