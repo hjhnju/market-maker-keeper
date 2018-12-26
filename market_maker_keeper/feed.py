@@ -96,13 +96,15 @@ class WebSocketFeed(Feed):
             time.sleep(self.reconnect_delay)
 
     def _on_open(self, ws):
+        self.logger.info(f"WebSocket '{self._sanitized_url}' connected")
         if self.open_event:
             ws.send(self.open_event)
-        self.logger.info(f"WebSocket '{self._sanitized_url}' connected")
+            self.logger.info(f"message {self.open_event} sended")
 
     def _on_close(self, ws):
         self.logger.info(f"WebSocket '{self._sanitized_url}' disconnected")
 
+    @staticmethod
     def inflate(data):
         decompress = zlib.decompressobj(
             -zlib.MAX_WBITS  # see above
