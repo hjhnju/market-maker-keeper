@@ -69,6 +69,7 @@ class SideLimit:
         assert(isinstance(limit, dict))
         self.amount = Wad.from_number(limit['amount'])
         self.seconds = self._to_seconds(limit['period'])
+        self.freq = int(limit['freq']) if 'freq' in limit.keys() else None
 
     def _to_seconds(self, string: str) -> int:
         assert(isinstance(string, str))

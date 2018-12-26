@@ -21,6 +21,7 @@ import operator
 from functools import reduce
 from pprint import pformat
 from typing import Tuple, Optional
+import numpy as np
 
 import time
 
@@ -67,7 +68,7 @@ class Band:
 
         assert(self.min_margin <= self.avg_margin)
         assert(self.avg_margin <= self.max_margin)
-        assert(self.min_margin < self.max_margin)
+        assert(self.min_margin <= self.max_margin)
 
     def order_price(self, order) -> Wad:
         raise NotImplemented()
@@ -359,13 +360,14 @@ class Bands:
             total_amount = self.total_amount(orders)
             if total_amount < band.min_amount:
                 price = band.avg_price(target_price)
-                pay_amount = Wad.min(band.avg_amount - total_amount, our_sell_balance, limit_amount)
+                pay_amount = Wad.from_number(np.random.uniform(float(band.min_amount), float(band.max_amount)))
+                pay_amount = Wad.min(pay_amount - total_amount, our_sell_balance, limit_amount)
                 buy_amount = pay_amount * price
                 missing_amount += Wad.max((band.avg_amount - total_amount) - our_sell_balance, Wad(0))
                 if (price > Wad(0)) and (pay_amount >= band.dust_cutoff) and (pay_amount > Wad(0)) and (buy_amount > Wad(0)):
                     self.logger.info(f"Sell band (spread <{band.min_margin}, {band.max_margin}>,"
                                      f" amount <{band.min_amount}, {band.max_amount}>) has amount {total_amount},"
-                                     f" creating new sell order with price {price}")
+                                     f" creating new sell order amount {pay_amount} with price {price}")
 
                     our_sell_balance = our_sell_balance - pay_amount
                     limit_amount = limit_amount - pay_amount
@@ -401,7 +403,8 @@ class Bands:
                 price = band.avg_price(target_price)
 
                 # 要购买的Token数量
-                buy_amount = Wad.min(band.avg_amount - total_buy_amount, limit_buy_amount)
+                buy_amount = Wad.from_number(np.random.uniform(float(band.min_amount), float(band.max_amount)))
+                buy_amount = Wad.min(buy_amount - total_buy_amount, limit_buy_amount)
                 # 待支付的Token数量, 如usdt
                 pay_amount = Wad.min(buy_amount*price, our_buy_balance)
 
@@ -409,7 +412,7 @@ class Bands:
                 if (price > Wad(0)) and (pay_amount >= band.dust_cutoff) and (pay_amount > Wad(0)) and (buy_amount > Wad(0)):
                     self.logger.info(f"Buy band (spread <{band.min_margin}, {band.max_margin}>,"
                                      f" amount <{band.min_amount}, {band.max_amount}>) has amount {total_buy_amount},"
-                                     f" creating new buy order with price {price}")
+                                     f" creating new buy order amount {buy_amount} with price {price}")
 
                     our_buy_balance = our_buy_balance - pay_amount
                     limit_buy_amount = limit_buy_amount - buy_amount

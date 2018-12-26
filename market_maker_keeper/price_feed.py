@@ -154,6 +154,10 @@ class WebSocketPriceFeed(PriceFeed):
             if 'buyPrice' in data:
                 buy_price = Wad.from_number(data['buyPrice'])
 
+            elif 'buy' in data:
+                # 买一价格
+                buy_price = Wad.from_number(data['buy'])
+
             elif 'price' in data:
                 buy_price = Wad.from_number(data['price'])
 
@@ -165,6 +169,10 @@ class WebSocketPriceFeed(PriceFeed):
         try:
             if 'sellPrice' in data:
                 sell_price = Wad.from_number(data['sellPrice'])
+
+            elif 'sell' in data:
+                # 卖一价
+                sell_price = Wad.from_number(data['sell'])
 
             elif 'price' in data:
                 sell_price = Wad.from_number(data['price'])
@@ -238,7 +246,7 @@ class PriceFeedFactory:
     @staticmethod
     def create_price_feed(arguments, tub: Tub = None) -> PriceFeed:
         return BackupPriceFeed([PriceFeedFactory._create_price_feed(price_feed, arguments.price_feed_expiry, tub)
-                                for price_feed in arguments.price_feed.split(",")])
+                                for price_feed in arguments.price_feed.split(";")])
 
     @staticmethod
     def _create_price_feed(price_feed_argument: str, price_feed_expiry_argument: int, tub: Optional[Tub]):

@@ -60,8 +60,11 @@ class WebSocketFeed(Feed):
         assert(isinstance(ws_url, str))
         assert(isinstance(reconnect_delay, int))
 
-        self.ws_url = ws_url
+        wsurls = ws_url.split('#')
+        self.ws_url = wsurls[0]
         self.reconnect_delay = reconnect_delay
+
+        self.open_event = wsurls[1] if len(wsurls) > 1 else None
 
         self._header = self._get_header(ws_url)
         self._sanitized_url = sanitize_url(ws_url)
@@ -92,6 +95,8 @@ class WebSocketFeed(Feed):
             time.sleep(self.reconnect_delay)
 
     def _on_open(self, ws):
+        if self.open_event:
+            ws.send(self.open_event)
         self.logger.info(f"WebSocket '{self._sanitized_url}' connected")
 
     def _on_close(self, ws):
