@@ -6,3 +6,4 @@ pytest-mock == 1.6.3
 pytest-timeout == 1.2.1
 asynctest == 0.11.1
 Sphinx == 1.6.2
+numpy == 1.14.2

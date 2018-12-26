@@ -21,6 +21,7 @@ import threading
 import time
 from base64 import b64encode
 from typing import Tuple
+import zlib
 
 import re
 from urllib.parse import urlparse
@@ -102,8 +103,19 @@ class WebSocketFeed(Feed):
     def _on_close(self, ws):
         self.logger.info(f"WebSocket '{self._sanitized_url}' disconnected")
 
+    def inflate(data):
+        decompress = zlib.decompressobj(
+            -zlib.MAX_WBITS  # see above
+        )
+        inflated = decompress.decompress(data)
+        inflated += decompress.flush()
+        return inflated
+
     def _on_message(self, ws, message):
         try:
+            # for okex
+            message = self.inflate(message)
+
             message_obj = json.loads(message)
 
             data = dict(message_obj['data'])

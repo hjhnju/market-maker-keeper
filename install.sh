@@ -2,6 +2,9 @@
 
 cd "$(dirname "$0")"
 
+# get submodules first
+git submodule update --init --recursive
+
 set -e
 
 rm -rf _virtualenv
