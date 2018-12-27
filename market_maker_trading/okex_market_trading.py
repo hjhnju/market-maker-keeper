@@ -43,6 +43,9 @@ class OkexMarketTrading:
         parser.add_argument("--okex-secret-key", type=str, required=True,
                             help="Secret key for the OKEX API")
 
+        parser.add_argument("--okex-passphrase", type=str, required=True,
+                            help="Passphrase for the OKEX API")
+
         parser.add_argument("--okex-timeout", type=float, default=9.5,
                             help="Timeout for accessing the OKEX API (in seconds, default: 9.5)")
 
@@ -97,6 +100,7 @@ class OkexMarketTrading:
         self.okex_api = OKEXApi(api_server=self.arguments.okex_api_server,
                                 api_key=self.arguments.okex_api_key,
                                 secret_key=self.arguments.okex_secret_key,
+                                passphrase=self.arguments.okex_passphrase,
                                 timeout=self.arguments.okex_timeout)
 
         self.order_book_manager = OrderBookManager(refresh_frequency=self.arguments.refresh_frequency)
