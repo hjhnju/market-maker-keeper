@@ -119,13 +119,16 @@ class OkexMarketTrading:
         return self.arguments.pair.lower()
 
     def token_sell(self) -> str:
-        return self.arguments.pair.split('_')[0].lower()
+        return self.arguments.pair.split('-')[0].lower()
 
     def token_buy(self) -> str:
-        return self.arguments.pair.split('_')[1].lower()
+        return self.arguments.pair.split('-')[1].lower()
 
-    def our_available_balance(self, our_balances: dict, token: str) -> Wad:
-        return Wad.from_number(our_balances['free'][token])
+    def our_available_balance(self, our_balances: list, token: str) -> Wad:
+        for item in our_balances:
+            if token in item:
+                return Wad.from_number(item['available'])
+        return Wad(0)
 
     def our_sell_orders(self, our_orders: list) -> list:
         return list(filter(lambda order: order.is_sell, our_orders))
