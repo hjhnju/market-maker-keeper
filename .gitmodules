@@ -3,7 +3,7 @@
 	url = https://github.com/makerdao/pymaker.git
 [submodule "lib/pyexchange"]
 	path = lib/pyexchange
-	url = https://github.com/makerdao/pyexchange.git
+	url = https://github.com/hjhnju/pyexchange.git
 [submodule "lib/ethgasstation-client"]
 	path = lib/ethgasstation-client
 	url = https://github.com/makerdao/ethgasstation-client.git

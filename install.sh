@@ -7,6 +7,8 @@ git submodule update --init --recursive
 
 set -e
 
+# be sure using python3.6 in your env
+
 rm -rf _virtualenv
 virtualenv _virtualenv
 source _virtualenv/bin/activate
