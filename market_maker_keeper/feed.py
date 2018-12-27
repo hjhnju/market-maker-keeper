@@ -23,10 +23,10 @@ from base64 import b64encode
 from typing import Tuple
 import zlib
 
-import re
 from urllib.parse import urlparse
 
 import websocket
+import datetime
 
 from market_maker_keeper.util import sanitize_url
 
@@ -122,9 +122,10 @@ class WebSocketFeed(Feed):
                 self.logger.debug(f"ReceivedMsg '{message}', do nothing")
                 return
 
-            timestamp = float(message_dict['timestamp'])
-            with self._lock:
-                self._last = message_dict, timestamp
+            for data in message_dict['data']:
+                timestamp = datetime.datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                with self._lock:
+                    self._last = data, timestamp
 
             if self._on_update_function is not None:
                 self._on_update_function()

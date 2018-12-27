@@ -113,7 +113,7 @@ class OkexMarketTrading:
     def main(self):
         with Lifecycle() as lifecycle:
             lifecycle.initial_delay(10)
-            lifecycle.every(1, self.synchronize_orders)
+            lifecycle.every(5, self.synchronize_orders)
             lifecycle.on_shutdown(self.shutdown)
 
     def shutdown(self):
@@ -158,7 +158,7 @@ class OkexMarketTrading:
         if not do_trade:
             logging.debug(f"Don't trading. hit_number={hit_number}, hit_range={hit_range}")
             return
-        logging.info(f"Do trading. hit_number={hit_number}, hit_range={hit_range}")
+        logging.info(f"[Do trading]hit_number={hit_number}, hit_range={hit_range}")
 
         order_book = self.order_book_manager.get_order_book()
         current_price = self.price_feed.get_price()
