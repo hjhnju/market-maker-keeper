@@ -4,6 +4,7 @@
 [submodule "lib/pyexchange"]
 	path = lib/pyexchange
 	url = https://github.com/hjhnju/pyexchange.git
+    branch = master
 [submodule "lib/ethgasstation-client"]
 	path = lib/ethgasstation-client
 	url = https://github.com/makerdao/ethgasstation-client.git
