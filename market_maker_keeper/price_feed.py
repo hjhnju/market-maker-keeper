@@ -154,9 +154,9 @@ class WebSocketPriceFeed(PriceFeed):
             if 'buyPrice' in data:
                 buy_price = Wad.from_number(data['buyPrice'])
 
-            elif 'buy' in data:
+            elif 'best_bid' in data:
                 # 买一价格
-                buy_price = Wad.from_number(data['buy'])
+                buy_price = Wad.from_number(data['best_bid'])
 
             elif 'price' in data:
                 buy_price = Wad.from_number(data['price'])
@@ -170,9 +170,9 @@ class WebSocketPriceFeed(PriceFeed):
             if 'sellPrice' in data:
                 sell_price = Wad.from_number(data['sellPrice'])
 
-            elif 'sell' in data:
+            elif 'best_ask' in data:
                 # 卖一价
-                sell_price = Wad.from_number(data['sell'])
+                sell_price = Wad.from_number(data['best_ask'])
 
             elif 'price' in data:
                 sell_price = Wad.from_number(data['price'])

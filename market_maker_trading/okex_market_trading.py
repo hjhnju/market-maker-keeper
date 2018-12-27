@@ -20,6 +20,8 @@ from pyexchange.okex import OKEXApi, Order
 from pymaker.lifecycle import Lifecycle
 from pymaker.numeric import Wad
 
+from functools import reduce
+
 from market_maker_keeper.price_feed import Price
 
 
@@ -134,21 +136,28 @@ class OkexMarketTrading:
     # 在买一和卖一间隔中下单自动成交
     def synchronize_orders(self):
 
-        # 交易触发规则：15分钟10次，随机触发。产生一个随机数，若命中概率则交易
+        # 交易触发规则：随机触发。产生一个随机数，若命中概率则交易
+        current_time = time.strftime("%H")
+        freq_dict = {'0':5, '1':3, '2':2, '3':1, '4':1, '5':1, '6':5, '7':8, '8':10, '9':15, '10':16, '11':10,
+                '12':15, '13':10, '14':15, '15':20, '16':45, '17':10, '18':15, '19':25, '20':48, '21':15, '22':10, '23':8}
+        total_freq = reduce(lambda x, y: x + y, list(freq_dict.values())) * 4
+        freq = freq_dict[current_time]
         do_trade = False
         hit_number = np.random.random()
-        hit_range = 100 / (15 * 60)
+        hit_range = freq / (15.0 * 60.0)
         if hit_number < hit_range:
             do_trade = True
 
         if not do_trade:
-            logging.info(f"Don't trading. hit_number={hit_number}, hit_range={hit_range}")
+            logging.debug(f"Don't trading. hit_number={hit_number}, hit_range={hit_range}")
             return
         logging.info(f"Do trading. hit_number={hit_number}, hit_range={hit_range}")
 
         order_book = self.order_book_manager.get_order_book()
         current_price = self.price_feed.get_price()
-        # current_price = Price(buy_price=Wad.from_number(0.000280), sell_price=Wad.from_number(0.000285))
+        if current_price.buy_price is None or current_price.sell_price is None:
+            self.logger.warning("Current_price：buy_price or sell_price is None")
+            return
 
         # Do not place new orders if order book state is not confirmed
         if order_book.orders_being_placed or order_book.orders_being_cancelled:
@@ -222,7 +231,8 @@ class OkexMarketTrading:
                                            confirm_function=lambda: self.buy_limits.use_limit(time.time(), pay_amount)))
             logging.info("Trading new_sell_order, price:%s, buy_amount:%s, pay_amount:%s" % (trade_price, buy_amount, pay_amount))
 
-        return new_buy_orders + new_sell_orders
+        # 先放卖单，再放买单
+        return new_sell_orders + new_buy_orders
 
 if __name__ == '__main__':
     OkexMarketTrading(sys.argv[1:]).main()

@@ -67,8 +67,8 @@ class WebSocketFeed(Feed):
 
         self.open_event = wsurls[1] if len(wsurls) > 1 else None
 
-        self._header = self._get_header(ws_url)
-        self._sanitized_url = sanitize_url(ws_url)
+        self._header = self._get_header(self.ws_url)
+        self._sanitized_url = sanitize_url(self.ws_url)
         self._last = {}, 0.0
         self._lock = threading.Lock()
         self._on_update_function = None
@@ -115,15 +115,16 @@ class WebSocketFeed(Feed):
 
     def _on_message(self, ws, message):
         try:
-            # for okex
-            message = self.inflate(message)
+            # for okex format
+            message = self.inflate(message).decode()
+            message_dict = json.loads(message)
+            if 'data' not in message_dict:
+                self.logger.debug(f"ReceivedMsg '{message}', do nothing")
+                return
 
-            message_obj = json.loads(message)
-
-            data = dict(message_obj['data'])
-            timestamp = float(message_obj['timestamp'])
+            timestamp = float(message_dict['timestamp'])
             with self._lock:
-                self._last = data, timestamp
+                self._last = message_dict, timestamp
 
             if self._on_update_function is not None:
                 self._on_update_function()
