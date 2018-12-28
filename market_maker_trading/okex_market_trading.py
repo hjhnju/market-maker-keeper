@@ -163,6 +163,7 @@ class OkexMarketTrading:
         if current_price.buy_price is None or current_price.sell_price is None:
             self.logger.warning("Current_price：buy_price or sell_price is None")
             return
+        logging.info(f"Current_price: {current_price}")
 
         # Do not place new orders if order book state is not confirmed
         if order_book.orders_being_placed or order_book.orders_being_cancelled:
@@ -195,7 +196,7 @@ class OkexMarketTrading:
                                                  price=new_order_to_be_placed.price,
                                                  amount=amount)
 
-            return Order(order_id, 0, self.pair(), new_order_to_be_placed.is_sell, new_order_to_be_placed.price, amount, Wad(0))
+            return Order(order_id, 0.0, self.pair(), new_order_to_be_placed.is_sell, new_order_to_be_placed.price, amount, Wad(0))
 
         for new_order in new_orders:
             self.order_book_manager.place_order(lambda new_order=new_order: place_order_function(new_order))

@@ -39,6 +39,8 @@ class Price(object):
         self.buy_price = buy_price
         self.sell_price = sell_price
 
+    def __repr__(self):
+        return f"buy_price={self.buy_price}, sell_price={self.sell_price}"
 
 class PriceFeed(object):
     def get_price(self) -> Price:
