@@ -145,20 +145,18 @@ class OkexMarketTrading:
 
         # 交易触发规则：随机触发。产生一个随机数，若命中概率则交易
         current_time = time.strftime("%H")
-        freq_dict = {'0':5, '1':3, '2':2, '3':1, '4':1, '5':1, '6':5, '7':8, '8':10, '9':15, '10':16, '11':10,
-                '12':15, '13':10, '14':15, '15':20, '16':45, '17':10, '18':15, '19':25, '20':48, '21':15, '22':10, '23':8}
-        total_freq = reduce(lambda x, y: x + y, list(freq_dict.values())) * 4
+        freq_dict = {'00':15, '01':10, '02':8, '03':4, '04':5, '05':6, '06':15, '07':200, '08':30, '09':45, '10':48, '11':30,
+                     '12':45, '13':30, '14':45, '15':60, '16':125, '17':30, '18':45, '19':75, '20':138, '21':45, '22':30, '23':20}
         freq = freq_dict[current_time]
-        do_trade = False
         hit_number = np.random.random()
-        hit_range = freq / (15.0 * 60.0)
-        if hit_number < hit_range:
-            do_trade = True
+        hit_range = freq / (12 * 60.0)
+        do_trade = True if hit_number < hit_range else False
 
         if not do_trade:
-            logging.debug(f"Don't trading. hit_number={hit_number}, hit_range={hit_range}")
+            total_freq = reduce(lambda x, y: x + y, list(freq_dict.values()))
+            logging.debug(f"NOT HIT. total freq is {total_freq} per day. hit_number={hit_number}, hit_range={hit_range}")
             return
-        logging.info(f"[Do trading]hit_number={hit_number}, hit_range={hit_range}")
+        logging.info(f"[DO TRADING]hit_number={hit_number}, hit_range={hit_range}")
 
         order_book = self.order_book_manager.get_order_book()
         current_price = self.price_feed.get_price()
