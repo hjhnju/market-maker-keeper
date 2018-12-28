@@ -120,17 +120,17 @@ class OkexMarketTrading:
         self.order_book_manager.cancel_all_orders()
 
     def pair(self):
-        return self.arguments.pair.lower()
+        return self.arguments.pair.upper()
 
     def token_sell(self) -> str:
-        return self.arguments.pair.split('-')[0].lower()
+        return self.arguments.pair.split('-')[0].upper()
 
     def token_buy(self) -> str:
-        return self.arguments.pair.split('-')[1].lower()
+        return self.arguments.pair.split('-')[1].upper()
 
     def our_available_balance(self, our_balances: list, token: str) -> Wad:
         for item in our_balances:
-            if token in item:
+            if token == item['currency']:
                 return Wad.from_number(item['available'])
         return Wad(0)
 

@@ -123,7 +123,8 @@ class WebSocketFeed(Feed):
                 return
 
             for data in message_dict['data']:
-                timestamp = datetime.datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                utc_dt = datetime.datetime.strptime(data['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                timestamp = (utc_dt - datetime.datetime(1970, 1, 1)).total_seconds()
                 with self._lock:
                     self._last = data, timestamp
 
@@ -161,6 +162,7 @@ class ExpiringFeed(Feed):
         if time.time() - timestamp <= self.expiry:
             return data, timestamp
         else:
+            logging.warning(f"expired time. {time.time()} > {timestamp} = {time.time() - timestamp}> {self.expiry}")
             return {}, 0.0
 
     def on_update(self, on_update_function):
