@@ -28,6 +28,9 @@ class OKExFuturesMaker:
         parser.add_argument("--strategy", type=str, required=True,
                             help="strategy class")
 
+        parser.add_argument("--save-data-file", type=str, required=True,
+                            help="strategy class")
+
         parser.add_argument("--debug", dest='debug', action='store_true',
                             help="Enable debug output")
 
@@ -45,6 +48,7 @@ class OKExFuturesMaker:
             self.strategy = TrandStrategy()
         else:
             self.strategy = Strategy()
+        self.save_data_file = self.arguments.save_data_file
 
     def sync(self):
         pass
@@ -55,7 +59,7 @@ class OKExFuturesMaker:
     def main(self):
         with Lifecycle() as lifecycle:
             open_message = '{"op": "subscribe", "args": ["swap/ticker:%s", "swap/candle60s:%s", "swap/candle180s:%s", "swap/candle300s:%s","swap/candle900s:%s"]}' % (self.pair, self.pair, self.pair, self.pair, self.pair)
-            self.okex_websocket_api.lisen(open_message, self.strategy.run)
+            self.okex_websocket_api.lisen(open_message, self.save_data_file, self.strategy.run)
 
             lifecycle.initial_delay(10)
             lifecycle.every(5, self.sync)
