@@ -40,7 +40,7 @@ class OKExFuturesMaker:
         logging.info(f"Arguments {self.arguments}, config {self.config}")
         self.okex_api = OKExSwapApiFactory.get_okex_swap_api(self.config)
         self.okex_websocket_api = OKExWebsocketApi(self.config["OKEX_WEBSOCKET_URL"])
-        # self.strategy = getattr(sys.modules[__name__], self.arguments.strategy)
+        self.pair = self.arguments.pair
         if self.arguments.strategy == "TrandStrategy":
             self.strategy = TrandStrategy()
         else:
@@ -54,13 +54,8 @@ class OKExFuturesMaker:
 
     def main(self):
         with Lifecycle() as lifecycle:
-            open_messages = ['{"op": "subscribe", "args": ["swap/ticker:ETH-USD-SWAP"]',
-                             '{"op": "subscribe", "args": ["swap/candle60s:ETH-USD-SWAP"]}',
-                             '{"op": "subscribe", "args": ["swap/candle180s:ETH-USD-SWAP"]}',
-                             '{"op": "subscribe", "args": ["swap/candle300s:ETH-USD-SWAP"]}',
-                             '{"op": "subscribe", "args": ["swap/candle900s:ETH-USD-SWAP"]}',
-                             ]
-            self.okex_websocket_api.lisen(open_messages, self.strategy.run)
+            open_message = '{"op": "subscribe", "args": ["swap/ticker:%s", "swap/candle60s:%s", "swap/candle180s:%s", "swap/candle300s:%s","swap/candle900s:%s"]}' % (self.pair, self.pair, self.pair, self.pair, self.pair)
+            self.okex_websocket_api.lisen(open_message, self.strategy.run)
 
             lifecycle.initial_delay(10)
             lifecycle.every(5, self.sync)

@@ -28,10 +28,10 @@ class OKExWebsocketApi:
         self._callback_function = None
         self.open_messages = []
 
-    def lisen(self, open_messages: [str], callback):
+    def lisen(self, open_message: str, callback):
         assert(callable(callback))
 
-        self.open_messages = open_messages
+        self.open_message = open_message
         self._callback_function = callback
         threading.Thread(target=self._background_run, daemon=True).start()
 
@@ -57,9 +57,8 @@ class OKExWebsocketApi:
 
     def _on_open(self, ws):
         self.logger.info(f"WebSocket '{self._sanitized_url}' connected")
-        for message in self.open_messages:
-            ws.send(message)
-            self.logger.info(f"Subscribe {message} sended")
+        ws.send(self.open_message)
+        self.logger.info(f"Subscribe {self.open_message} sended")
 
     def _on_close(self, ws):
         self.logger.info(f"WebSocket '{self._sanitized_url}' disconnected")
