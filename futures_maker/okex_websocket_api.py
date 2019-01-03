@@ -28,16 +28,12 @@ class OKExWebsocketApi:
         self._lock = threading.Lock()
         self._callback_function = None
         self.open_message = ""
-        # save data to file for analyse
-        self.save_data_file = None
-        self.file = None
 
-    def lisen(self, open_message: str, save_data_file: str, callback):
+    def lisen(self, open_message: str, callback):
         assert(callable(callback))
 
         self.open_message = open_message
         self._callback_function = callback
-        self.save_data_file = save_data_file
         threading.Thread(target=self._background_run, daemon=True).start()
 
     @staticmethod
@@ -65,11 +61,8 @@ class OKExWebsocketApi:
         ws.send(self.open_message)
         self.logger.info(f"Subscribe {self.open_message} sended")
 
-        self.file = open(self.save_data_file, 'a')
-
     def _on_close(self, ws):
         self.logger.info(f"WebSocket '{self._sanitized_url}' disconnected")
-        self.file.close()
 
     @staticmethod
     def inflate(data):
@@ -91,12 +84,11 @@ class OKExWebsocketApi:
             # save data for analyse
             receive_time = datetime.datetime.now()
             receive_time_iso = datetime.datetime.now().isoformat() + 'Z'
-            self.file.write(f"{receive_time}\t{receive_time_iso}\t{message_dict}\n")
 
             if self._callback_function is not None:
                 self._callback_function(message_dict)
 
-            self.logger.debug(f"WebSocket '{self._sanitized_url}' received message: '{message}'")
+            self.logger.debug(f"[WebSocket Message]'{receive_time}\t{receive_time_iso}\t{message_dict}\n")
         except:
             self.logger.warning(f"WebSocket '{self._sanitized_url}' received invalid message: '{message}'")
 
