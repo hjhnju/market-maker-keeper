@@ -27,5 +27,6 @@ class TrandStrategy(Strategy):
     """trading by trand strategy"""
     def __init__(self):
         super().__init__()
+        self.logger.debug(f"init TrandStrategy")
 
 
