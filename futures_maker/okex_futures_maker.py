@@ -54,7 +54,7 @@ class OKExFuturesMaker:
 
     def main(self):
         with Lifecycle() as lifecycle:
-            open_message = '{"op": "subscribe", "args": ["swap/ticker:%s", "swap/candle60s:%s", "swap/candle180s:%s", "swap/candle300s:%s","swap/candle900s:%s"]}' % (self.pair, self.pair, self.pair, self.pair, self.pair)
+            open_message = '{"op": "subscribe", "args": ["swap/ticker:%s", "spot/ticker:ETH-USDT", "swap/candle60s:%s", "swap/candle300s:%s","swap/candle900s:%s"]}' % (self.pair, self.pair, self.pair, self.pair, self.pair)
             self.okex_websocket_api.lisen(open_message, self.strategy.run)
 
             lifecycle.initial_delay(10)
