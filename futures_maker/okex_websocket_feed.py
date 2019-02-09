@@ -12,10 +12,10 @@ import websocket
 from market_maker_keeper.util import sanitize_url
 
 
-class OKExWebsocketApi:
+class OkexWebSocketFeed:
     logger = logging.getLogger()
 
-    def __init__(self, ws_url: str, reconnect_delay: int = 5):
+    def __init__(self, ws_url: str, open_message: str = None, reconnect_delay: int = 5):
         super().__init__()
         assert (isinstance(ws_url, str))
         assert (isinstance(reconnect_delay, int))
@@ -24,16 +24,10 @@ class OKExWebsocketApi:
         self.reconnect_delay = reconnect_delay
         self._header = self._get_header(self.ws_url)
         self._sanitized_url = sanitize_url(self.ws_url)
-
         self._lock = threading.Lock()
-        self._callback_function = None
-        self.open_message = ""
-
-    def lisen(self, open_message: str, callback):
-        assert(callable(callback))
-
+        self._callback = None
         self.open_message = open_message
-        self._callback_function = callback
+
         threading.Thread(target=self._background_run, daemon=True).start()
 
     @staticmethod
@@ -58,8 +52,9 @@ class OKExWebsocketApi:
 
     def _on_open(self, ws):
         self.logger.info(f"WebSocket '{self._sanitized_url}' connected")
-        ws.send(self.open_message)
-        self.logger.info(f"Subscribe {self.open_message} sended")
+        if self.open_message:
+            ws.send(self.open_message)
+            self.logger.info(f"Subscribe {self.open_message} sended")
 
     def _on_close(self, ws):
         self.logger.info(f"WebSocket '{self._sanitized_url}' disconnected")
@@ -85,8 +80,8 @@ class OKExWebsocketApi:
             receive_time = datetime.datetime.now().isoformat() + 'Z'
             receive_time_utc = datetime.datetime.utcnow().isoformat() + 'Z'
 
-            if self._callback_function is not None:
-                self._callback_function(message_dict)
+            if callable(self._callback):
+                self._callback(message_dict)
 
             self.logger.debug(f"[WebSocket Message]{receive_time}\t{receive_time_utc}\t{message_dict}\n")
         except:
@@ -94,6 +89,10 @@ class OKExWebsocketApi:
 
     def _on_error(self, ws, error):
         self.logger.info(f"WebSocket '{self._sanitized_url}' error: '{error}'")
+
+    def set_callback(self, callback):
+        assert(callable(callback))
+        self._callback = callback
 
 
 

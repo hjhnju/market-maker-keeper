@@ -1,9 +1,9 @@
 # Quant Framework
 #
 
-from futures_maker.okex_api import OKExSwapApi, OKExSwapApiFactory
-from futures_maker.okex_websocket_api import OKExWebsocketApi
-from futures_maker.strategy import TrandStrategy, Strategy
+from futures_maker.okex_api import OKExSwapApiFactory
+from futures_maker.okex_websocket_feed import OkexWebSocketFeed
+from futures_maker.strategy import TrandStrategy
 from pymaker.lifecycle import Lifecycle
 from market_maker_keeper.util import setup_logging
 
@@ -32,6 +32,7 @@ class OKExFuturesMaker:
                             help="Enable debug output")
 
         self.arguments = parser.parse_args(args)
+        self.instrument_id = self.arguments.pair
         setup_logging(self.arguments)
 
         with open(self.arguments.config, "r") as f:
@@ -39,26 +40,34 @@ class OKExFuturesMaker:
 
         logging.info(f"Arguments {self.arguments}, config {self.config}")
         self.okex_api = OKExSwapApiFactory.get_okex_swap_api(self.config)
-        self.okex_websocket_api = OKExWebsocketApi(self.config["OKEX_WEBSOCKET_URL"])
-        self.pair = self.arguments.pair
-        if self.arguments.strategy == "TrandStrategy":
-            self.strategy = TrandStrategy()
-        else:
-            self.strategy = Strategy()
+
+        open_message_obj = {
+            "op": "subscribe",
+            "args": [f"swap/ticker:{self.instrument_id}",
+                     f"spot/ticker:ETH-USDT",
+                     f"swap/candle60s:{self.instrument_id}",
+                     f"swap/candle300s:{self.instrument_id}",
+                     f"swap/candle900s:{self.instrument_id}"]}
+        open_message = str(open_message_obj)
+        self.okex_websocket_feed = OkexWebSocketFeed(self.config["OKEX_WEBSOCKET_URL"], open_message)
+
+        self.strategy = TrandStrategy(self.instrument_id)
+        self.strategy.set_api(self.okex_api)
+
+        self.okex_websocket_feed.set_callback(self.strategy.run)
 
     def sync(self):
+        # do nothing
         pass
 
     def shutdown(self):
+        logging.info(f"shutdown")
         pass
 
     def main(self):
         with Lifecycle() as lifecycle:
-            open_message = '{"op": "subscribe", "args": ["swap/ticker:%s", "spot/ticker:ETH-USDT", "swap/candle60s:%s", "swap/candle300s:%s","swap/candle900s:%s"]}' % (self.pair, self.pair, self.pair, self.pair, self.pair)
-            self.okex_websocket_api.lisen(open_message, self.strategy.run)
-
             lifecycle.initial_delay(10)
-            lifecycle.every(5, self.sync)
+            lifecycle.every(15, self.sync)
             lifecycle.on_shutdown(self.shutdown)
 
 
