@@ -36,7 +36,7 @@ class OKExFuturesMaker:
 
         self.arguments = parser.parse_args(args)
         self.instrument_id = self.arguments.pair
-        self.spot_instrument_id = self.arguments.spotpair
+        self.spot_instrument_id = self.arguments.spot
         setup_logging(self.arguments)
 
         with open(self.arguments.config, "r") as f:
