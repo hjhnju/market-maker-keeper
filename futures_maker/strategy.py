@@ -72,10 +72,10 @@ class TrandStrategy(Strategy):
         gap_price = (self.swap_ticker_last['best_bid'] - enter_price)*30 / enter_price
         gap_time = datetime.datetime.now() - enter_time
         self.logger.debug(f"gap_price:{gap_price}, gap_time:{gap_time}")
-        if gap_price > 0.3:
+        if gap_price > Wad.from_number(0.3):
             return True
 
-        if gap_price > 0.1 and gap_time > 1800:
+        if gap_price > Wad.from_number(0.1) and gap_time > 1800:
             return True
 
         return False
@@ -97,12 +97,12 @@ class TrandStrategy(Strategy):
             elif item['table'] == 'spot/candle60s':
                 candle = data['candle']
                 self.spot_candle60s_last['timestamp'] = candle[0]
-                self.spot_candle60s_last['open'] = float(candle[1])
-                self.spot_candle60s_last['high'] = float(candle[2])
-                self.spot_candle60s_last['low'] = float(candle[3])
-                self.spot_candle60s_last['close'] = float(candle[4])
-                self.spot_candle60s_last['volume'] = float(candle[5])
-                self.spot_candle60s_last['percent'] = (float(candle[4]) - float(candle[1]))/float(candle[1])
+                self.spot_candle60s_last['open'] = Wad.from_number(candle[1])
+                self.spot_candle60s_last['high'] = Wad.from_number(candle[2])
+                self.spot_candle60s_last['low'] = Wad.from_number(candle[3])
+                self.spot_candle60s_last['close'] = Wad.from_number(candle[4])
+                self.spot_candle60s_last['volume'] = Wad.from_number(candle[5])
+                self.spot_candle60s_last['percent'] = (self.spot_candle60s_last['close'] - self.spot_candle60s_last['open']) / self.spot_candle60s_last['open']
 
         self.logger.info(f"spot/ticker:{self.spot_ticker_last}\n"
                          f"swap/ticker:{self.swap_ticker_last}\n"
