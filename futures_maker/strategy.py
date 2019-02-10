@@ -59,7 +59,8 @@ class TrandStrategy(Strategy):
         if 'percent' not in self.spot_candle60s_last.keys():
             return False
 
-        if self.spot_candle60s_last['percent'] >= 0.3 and self.spot_candle60s_last['volume'] > 2000:
+        if self.spot_candle60s_last['percent'] >= Wad.from_number(0.3) and \
+                self.spot_candle60s_last['volume'] > Wad.from_number(2000):
             return True
 
         return False
