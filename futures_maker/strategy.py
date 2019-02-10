@@ -1,4 +1,5 @@
 # 交易策略的基类
+import datetime
 import logging
 from futures_maker.numeric import Wad
 
@@ -64,6 +65,19 @@ class TrandStrategy(Strategy):
         return False
 
     def match_exit_long(self):
+        if not self.enter_long:
+            return False
+
+        enter_price, size, enter_time = self.enter_long
+        gap_price = (self.swap_ticker_last['best_bid'] - enter_price)*30 / enter_price
+        gap_time = datetime.datetime.now() - enter_time
+        self.logger.debug(f"gap_price:{gap_price}, gap_time:{gap_time}")
+        if gap_price > 0.3:
+            return True
+
+        if gap_price > 0.1 and gap_time > 1800:
+            return True
+
         return False
 
     def match_enter_short(self):
@@ -98,12 +112,16 @@ class TrandStrategy(Strategy):
             '''发出开多指令-1'''
             price = self.swap_ticker_last['last']
             size = 10
-            self.api.place_order(self.instrument_id, 1, price, size)
+            order_id = self.api.place_order(self.instrument_id, 1, price, size)
+            if order_id:
+                self.enter_long = (price, size, datetime.datetime.now())
 
         if self.match_exit_long():
             '''发出平多指令-3'''
-            price = Wad(0)
-            size = 100
-            self.api.place_order(self.instrument_id, 3, price, size)
+            enter_price, size, enter_time = self.enter_long
+            exit_price = self.swap_ticker_last['best_bid']
+            order_id = self.api.place_order(self.instrument_id, 3, exit_price, size)
+            if order_id:
+                self.enter_long = False
 
 
