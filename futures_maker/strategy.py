@@ -75,13 +75,14 @@ class TrandStrategy(Strategy):
             elif item['table'] == 'swap/ticker':
                 self.swap_ticker_last = data
             elif item['talbe'] == 'spot/candle60s':
-                self.spot_candle60s_last['timestamp'] = data[0]
-                self.spot_candle60s_last['open'] = float(data[1])
-                self.spot_candle60s_last['high'] = float(data[2])
-                self.spot_candle60s_last['low'] = float(data[3])
-                self.spot_candle60s_last['close'] = float(data[4])
-                self.spot_candle60s_last['volume'] = float(data[5])
-                self.spot_candle60s_last['percent'] = (float(data[4]) - float(data[1]))/float(data[1])
+                candle = data['candle']
+                self.spot_candle60s_last['timestamp'] = candle[0]
+                self.spot_candle60s_last['open'] = float(candle[1])
+                self.spot_candle60s_last['high'] = float(candle[2])
+                self.spot_candle60s_last['low'] = float(candle[3])
+                self.spot_candle60s_last['close'] = float(candle[4])
+                self.spot_candle60s_last['volume'] = float(candle[5])
+                self.spot_candle60s_last['percent'] = (float(candle[4]) - float(candle[1]))/float(candle[1])
 
         self.logger.info(f"spot/ticker:{self.spot_ticker_last}\n"
                          f"swap/ticker:{self.swap_ticker_last}\n"
