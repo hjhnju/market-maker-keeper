@@ -47,12 +47,18 @@ class TrandStrategy(Strategy):
         self.swap_ticker_last = {}
         self.spot_candle60s_last = {}
 
+        self.enter_long = False
+
     def match_enter_long(self):
         """1、当前1分钟线上超过0.48%"""
+        if self.enter_long:
+            # already open
+            return False
+
         if 'percent' not in self.spot_candle60s_last.keys():
             return False
 
-        if self.spot_candle60s_last['percent'] >= 0.48 and self.spot_candle60s_last['volume'] > 2000:
+        if self.spot_candle60s_last['percent'] >= 0.3 and self.spot_candle60s_last['volume'] > 2000:
             return True
 
         return False
@@ -90,7 +96,7 @@ class TrandStrategy(Strategy):
 
         if self.match_enter_long():
             '''发出开多指令-1'''
-            price = self.swap_ticker_last['best_ask']
+            price = self.swap_ticker_last['last']
             size = 10
             self.api.place_order(self.instrument_id, 1, price, size)
 
