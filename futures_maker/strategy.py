@@ -74,7 +74,7 @@ class TrandStrategy(Strategy):
                 self.spot_ticker_last = data
             elif item['table'] == 'swap/ticker':
                 self.swap_ticker_last = data
-            elif item['talbe'] == 'spot/candle60s':
+            elif item['table'] == 'spot/candle60s':
                 candle = data['candle']
                 self.spot_candle60s_last['timestamp'] = candle[0]
                 self.spot_candle60s_last['open'] = float(candle[1])
