@@ -90,7 +90,7 @@ class TrandStrategy(Strategy):
 
         if self.match_enter_long():
             '''发出开多指令-1'''
-            price = self.swap_ticker_last['best_bid']
+            price = self.swap_ticker_last['best_ask']
             size = 10
             self.api.place_order(self.instrument_id, 1, price, size)
 
