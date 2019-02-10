@@ -69,6 +69,8 @@ class OkexWebSocketFeed:
         return inflated
 
     def _on_message(self, ws, message):
+        message_dict = {}
+
         try:
             message = self.inflate(message).decode()
             message_dict = json.loads(message)
@@ -80,12 +82,15 @@ class OkexWebSocketFeed:
             receive_time = datetime.datetime.now().isoformat() + 'Z'
             receive_time_utc = datetime.datetime.utcnow().isoformat() + 'Z'
 
-            if callable(self._callback):
-                self._callback(message_dict)
-
             self.logger.debug(f"[WebSocket Message]{receive_time}\t{receive_time_utc}\t{message_dict}\n")
         except:
             self.logger.warning(f"WebSocket '{self._sanitized_url}' received invalid message: '{message}'")
+
+        try:
+            if callable(self._callback):
+                self._callback(message_dict)
+        except:
+            self.logger.warning(f"callback process error")
 
     def _on_error(self, ws, error):
         self.logger.info(f"WebSocket '{self._sanitized_url}' error: '{error}'")

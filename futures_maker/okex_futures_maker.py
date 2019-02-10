@@ -22,6 +22,9 @@ class OKExFuturesMaker:
         parser.add_argument("--pair", type=str, required=True,
                             help="Token pair (sell/buy) on which the keeper will operate")
 
+        parser.add_argument("--spot", type=str, required=True,
+                            help="Token pair (sell/buy) on which the keeper will operate")
+
         parser.add_argument("--config", type=str, required=True,
                             help="configuration file")
 
@@ -33,6 +36,7 @@ class OKExFuturesMaker:
 
         self.arguments = parser.parse_args(args)
         self.instrument_id = self.arguments.pair
+        self.spot_instrument_id = self.arguments.spotpair
         setup_logging(self.arguments)
 
         with open(self.arguments.config, "r") as f:
@@ -44,11 +48,13 @@ class OKExFuturesMaker:
         open_message_obj = {
             "op": "subscribe",
             "args": [f"swap/ticker:{self.instrument_id}",
-                     f"spot/ticker:ETH-USDT",
-                     f"swap/candle60s:{self.instrument_id}",
-                     f"swap/candle300s:{self.instrument_id}",
-                     f"swap/candle900s:{self.instrument_id}"]}
+                     f"spot/ticker:{self.spot_instrument_id}",
+                     f"spot/candle60s:{self.spot_instrument_id}",
+                     f"spot/candle300s:{self.spot_instrument_id}",
+                     f"spot/candle900s:{self.spot_instrument_id}"]}
         open_message = str(open_message_obj)
+        open_message = open_message.replace("'", '"')
+        logging.info(f"send subscribe {open_message}")
         self.okex_websocket_feed = OkexWebSocketFeed(self.config["OKEX_WEBSOCKET_URL"], open_message)
 
         self.strategy = TrandStrategy(self.instrument_id)
