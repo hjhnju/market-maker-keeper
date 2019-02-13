@@ -70,19 +70,22 @@ class TrandStrategy(Strategy):
         enter_price = self.swap_ticker_last['last']
         enter_size = 10
 
-        self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
-                          f"last_price:{enter_price}")
+        self.spot_candle60s_last['percent'] = Wad.from_number(-0.3)
+        self.spot_candle60s_last['volume'] = Wad.from_number(2000)
 
-        if not self.is_enter_long and \
+        self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
+                          f"last_price:{enter_price}, is_enter_long:{self.is_enter_long}, is_enter_short:{self.is_enter_short}")
+
+        if self.is_enter_long is False and \
                 self.spot_candle60s_last['percent'] >= Wad.from_number(0.3) and \
-                self.spot_candle60s_last['volume'] > Wad.from_number(2000):
+                self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
             self.logger.info(f"Match enter long. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_LONG, enter_price, enter_size
 
         if not self.is_enter_short and \
                 self.spot_candle60s_last['percent'] <= Wad.from_number(-0.3) and \
-                self.spot_candle60s_last['volume'] > Wad.from_number(2000):
+                self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
             self.logger.info(f"Match enter short. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_SHORT, enter_price, enter_size
