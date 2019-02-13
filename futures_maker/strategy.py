@@ -71,23 +71,23 @@ class TrandStrategy(Strategy):
         enter_size = 10
 
         self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
-                          f"enter_price:{enter_price}, enter_size:{enter_size}")
+                          f"last_price:{enter_price}")
 
         if not self.is_enter_long and \
                 self.spot_candle60s_last['percent'] >= Wad.from_number(0.3) and \
                 self.spot_candle60s_last['volume'] > Wad.from_number(2000):
             self.logger.info(f"Match enter long. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
-                              f"enter_price:{enter_price}, enter_size:{enter_size}")
+                             f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_LONG, enter_price, enter_size
 
         if not self.is_enter_short and \
                 self.spot_candle60s_last['percent'] <= Wad.from_number(-0.3) and \
                 self.spot_candle60s_last['volume'] > Wad.from_number(2000):
             self.logger.info(f"Match enter short. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
-                f"enter_price:{enter_price}, enter_size:{enter_size}")
+                             f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_SHORT, enter_price, enter_size
 
-        return 0
+        return 0, 0, 0
 
     def match_exit_position(self):
 
