@@ -65,7 +65,7 @@ class TrandStrategy(Strategy):
         """1、当前现货1分钟线上涨超过0.3%且交易量超过2k，开多"""
 
         if 'percent' not in self.spot_candle60s_last.keys():
-            return None, None, None
+            return 0, 0, 0
 
         enter_price = self.swap_ticker_last['last']
         enter_size = 10
