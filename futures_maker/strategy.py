@@ -56,16 +56,16 @@ class TrandStrategy(Strategy):
 
         """可以同时一个开多一个开空 info = (price, size, time)"""
         self.is_enter_long = False
-        self.enter_long_info = 0, 0, 0
+        self.enter_long_info = Wad(0), 0, datetime.datetime.now()
 
         self.is_enter_short = False
-        self.enter_short_info = 0, 0, 0
+        self.enter_short_info = Wad(0), 0, datetime.datetime.now()
 
     def match_enter_position(self):
         """1、当前现货1分钟线上涨超过0.3%且交易量超过2k，开多"""
 
         if 'percent' not in self.spot_candle60s_last.keys():
-            return 0, 0, 0
+            return 0, Wad(0), 0
 
         enter_price = self.swap_ticker_last['last']
         enter_size = 10
@@ -90,7 +90,8 @@ class TrandStrategy(Strategy):
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_SHORT, enter_price, enter_size
 
-        return 0, 0, 0
+        # enter_long_or_short, enter_price, enter_size
+        return 0, Wad(0), 0
 
     def match_exit_position(self):
 
@@ -99,7 +100,7 @@ class TrandStrategy(Strategy):
             enter_price, enter_size, enter_time = self.enter_long_info
             exit_price = self.swap_ticker_last['best_bid']
             exit_size = enter_size
-            gap_price = (exit_price - enter_price)*30 / enter_price
+            gap_price = (exit_price - enter_price) * Wad.from_number(30) / enter_price
             gap_time = datetime.datetime.now() - enter_time
 
             self.logger.debug(f"gap_price:{gap_price}, gap_time:{gap_time}, exit_price:{exit_price}")
@@ -107,7 +108,8 @@ class TrandStrategy(Strategy):
                 self.logger.info(f"Match exit long. gap_price:{gap_price}, gap_time:{gap_time}, exit_price:{exit_price}")
                 return Strategy.EXIT_LONG, exit_price, exit_size
 
-        return 0, 0, 0
+        # (exit_long_or_short, exit_price, exit_size)
+        return 0, Wad(0), 0
 
     def run(self, item: dict):
         """处理每一个监听数据，触发执行策略"""
@@ -134,7 +136,7 @@ class TrandStrategy(Strategy):
         # 1、check if open position
         enter_long_or_short, enter_price, enter_size = self.match_enter_position()
         timestamp = datetime.datetime.now()
-        if enter_long_or_short > 0 and enter_price > 0 and enter_size > 0:
+        if enter_long_or_short > 0 and enter_price > Wad(0) and enter_size > 0:
             order_id = self.api.place_order(self.instrument_id, enter_long_or_short, enter_price, enter_size)
             if order_id:
                 if enter_long_or_short == Strategy.ENTER_LONG:
@@ -146,12 +148,12 @@ class TrandStrategy(Strategy):
 
         # 2、check if exit position
         exit_long_or_short, exit_price, exit_size = self.match_exit_position()
-        if exit_long_or_short > 0 and exit_price > 0 and exit_size > 0:
+        if exit_long_or_short > 0 and exit_price > Wad(0) and exit_size > 0:
             order_id = self.api.place_order(self.instrument_id, 3, exit_price, exit_size)
             if order_id:
                 if enter_long_or_short == Strategy.ENTER_LONG:
-                    self.enter_long_info = 0, 0, 0
+                    self.enter_long_info = Wad(0), 0, timestamp
                     self.is_enter_long = False
                 elif enter_long_or_short == Strategy.ENTER_SHORT:
-                    self.enter_short_info = 0, 0, 0
+                    self.enter_short_info = Wad(0), 0, timestamp
                     self.is_enter_short = False
