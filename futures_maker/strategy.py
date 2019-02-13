@@ -114,9 +114,13 @@ class TrandStrategy(Strategy):
         self.logger.debug(f"process message: {item}")
         for data in item['data']:
             if item['table'] == 'spot/ticker':
-                self.spot_ticker_last = data
+                self.spot_ticker_last['best_ask'] = Wad.from_number(data['best_ask'])
+                self.spot_ticker_last['best_bid'] = Wad.from_number(data['best_bid'])
+                self.spot_ticker_last['last'] = Wad.from_number(data['last'])
             elif item['table'] == 'swap/ticker':
-                self.swap_ticker_last = data
+                self.swap_ticker_last['best_ask'] = Wad.from_number(data['best_ask'])
+                self.swap_ticker_last['best_bid'] = Wad.from_number(data['best_bid'])
+                self.swap_ticker_last['last'] = Wad.from_number(data['last'])
             elif item['table'] == 'spot/candle60s':
                 candle = data['candle']
                 self.spot_candle60s_last['timestamp'] = candle[0]
