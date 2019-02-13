@@ -244,8 +244,8 @@ class OKExSwapApi:
 
     def _okex_header(self, method, request_path, body=""):
 
-        timestamp = self._get_timestamp()
-        # timestamp = self._get_server_timestamp()
+        # timestamp = self._get_timestamp()
+        timestamp = self._get_server_timestamp()
 
         """
         OK-ACCESS-SIGN的请求头是对timestamp + method + requestPath + body字符串(+表示字符串连接)，以及secretKey，使用HMAC SHA256方法加密，通过BASE64编码输出而得到的。
