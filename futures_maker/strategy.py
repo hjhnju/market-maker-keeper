@@ -108,7 +108,7 @@ class TrandStrategy(Strategy):
 
     def run(self, item: dict):
         """处理每一个监听数据，触发执行策略"""
-        self.logger.info(f"process message: {item}")
+        self.logger.debug(f"process message: {item}")
         for data in item['data']:
             if item['table'] == 'spot/ticker':
                 self.spot_ticker_last = data
