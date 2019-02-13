@@ -7,6 +7,15 @@ from futures_maker.numeric import Wad
 class Strategy:
     logger = logging.getLogger()
 
+    """开多指令"""
+    ENTER_LONG = 1
+    """开空"""
+    ENTER_SHORT = 2
+    """平多"""
+    EXIT_LONG = 3
+    """平空"""
+    EXIT_SHORT = 4
+
     """策略基类"""
     def __init__(self, instrument_id: str):
         self.instrument_id = instrument_id
@@ -40,52 +49,62 @@ class TrandStrategy(Strategy):
     def __init__(self, instrument_id):
         super().__init__(instrument_id)
         self.logger.debug(f"init TrandStrategy")
-        self.last_time = None
-        self.last_price = None
-        self.type_descs = {1: '开多', 2: '开空', 3: '平多', 4: '平空'}
 
         self.spot_ticker_last = {}
         self.swap_ticker_last = {}
         self.spot_candle60s_last = {}
 
-        self.enter_long = False
+        """可以同时一个开多一个开空 info = (price, size, time)"""
+        self.is_enter_long = False
+        self.enter_long_info = 0, 0, 0
 
-    def match_enter_long(self):
-        """1、当前1分钟线上超过0.48%"""
-        if self.enter_long:
-            # already open
-            return False
+        self.is_enter_short = False
+        self.enter_short_info = 0, 0, 0
+
+    def match_enter_position(self):
+        """1、当前现货1分钟线上涨超过0.3%且交易量超过2k，开多"""
 
         if 'percent' not in self.spot_candle60s_last.keys():
-            return False
+            return None, None, None
 
-        if self.spot_candle60s_last['percent'] >= Wad.from_number(0.3) and \
+        enter_price = self.swap_ticker_last['last']
+        enter_size = 10
+
+        self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
+                          f"enter_price:{enter_price}, enter_size:{enter_size}")
+
+        if not self.is_enter_long and \
+                self.spot_candle60s_last['percent'] >= Wad.from_number(0.3) and \
                 self.spot_candle60s_last['volume'] > Wad.from_number(2000):
-            return True
+            self.logger.info(f"Match enter long. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
+                              f"enter_price:{enter_price}, enter_size:{enter_size}")
+            return Strategy.ENTER_LONG, enter_price, enter_size
 
-        return False
+        if not self.is_enter_short and \
+                self.spot_candle60s_last['percent'] <= Wad.from_number(-0.3) and \
+                self.spot_candle60s_last['volume'] > Wad.from_number(2000):
+            self.logger.info(f"Match enter short. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
+                f"enter_price:{enter_price}, enter_size:{enter_size}")
+            return Strategy.ENTER_SHORT, enter_price, enter_size
 
-    def match_exit_long(self):
-        if not self.enter_long:
-            return False
+        return 0
 
-        enter_price, size, enter_time = self.enter_long
-        gap_price = (self.swap_ticker_last['best_bid'] - enter_price)*30 / enter_price
-        gap_time = datetime.datetime.now() - enter_time
-        self.logger.debug(f"gap_price:{gap_price}, gap_time:{gap_time}")
-        if gap_price > Wad.from_number(0.3):
-            return True
+    def match_exit_position(self):
 
-        if gap_price > Wad.from_number(0.1) and gap_time > 1800:
-            return True
+        # check long position
+        if self.is_enter_long:
+            enter_price, enter_size, enter_time = self.enter_long_info
+            exit_price = self.swap_ticker_last['best_bid']
+            exit_size = enter_size
+            gap_price = (exit_price - enter_price)*30 / enter_price
+            gap_time = datetime.datetime.now() - enter_time
 
-        return False
+            self.logger.debug(f"gap_price:{gap_price}, gap_time:{gap_time}, exit_price:{exit_price}")
+            if gap_price > Wad.from_number(0.3) or (gap_price > Wad.from_number(0.1) and gap_time > 1800):
+                self.logger.info(f"Match exit long. gap_price:{gap_price}, gap_time:{gap_time}, exit_price:{exit_price}")
+                return Strategy.EXIT_LONG, exit_price, exit_size
 
-    def match_enter_short(self):
-        return False
-
-    def match_exit_short(self):
-        return False
+        return 0, 0, 0
 
     def run(self, item: dict):
         """处理每一个监听数据，触发执行策略"""
@@ -105,24 +124,27 @@ class TrandStrategy(Strategy):
                 self.spot_candle60s_last['volume'] = Wad.from_number(candle[5])
                 self.spot_candle60s_last['percent'] = (self.spot_candle60s_last['close'] - self.spot_candle60s_last['open']) / self.spot_candle60s_last['open']
 
-        self.logger.info(f"spot/ticker:{self.spot_ticker_last}\n"
-                         f"swap/ticker:{self.swap_ticker_last}\n"
-                         f"spot/candle60s: {self.spot_candle60s_last}\n")
-
-        if self.match_enter_long():
-            '''发出开多指令-1'''
-            price = self.swap_ticker_last['last']
-            size = 10
-            order_id = self.api.place_order(self.instrument_id, 1, price, size)
+        # 1、check if open position
+        enter_long_or_short, enter_price, enter_size = self.match_enter_position()
+        timestamp = datetime.datetime.now()
+        if enter_long_or_short > 0 and enter_price > 0 and enter_size > 0:
+            order_id = self.api.place_order(self.instrument_id, enter_long_or_short, enter_price, enter_size)
             if order_id:
-                self.enter_long = (price, size, datetime.datetime.now())
+                if enter_long_or_short == Strategy.ENTER_LONG:
+                    self.enter_long_info = (enter_price, enter_size, timestamp)
+                    self.is_enter_long = True
+                elif enter_long_or_short == Strategy.ENTER_SHORT:
+                    self.enter_short_info = (enter_price, enter_size, timestamp)
+                    self.is_enter_short = True
 
-        if self.match_exit_long():
-            '''发出平多指令-3'''
-            enter_price, size, enter_time = self.enter_long
-            exit_price = self.swap_ticker_last['best_bid']
-            order_id = self.api.place_order(self.instrument_id, 3, exit_price, size)
+        # 2、check if exit position
+        exit_long_or_short, exit_price, exit_size = self.match_exit_position()
+        if exit_long_or_short > 0 and exit_price > 0 and exit_size > 0:
+            order_id = self.api.place_order(self.instrument_id, 3, exit_price, exit_size)
             if order_id:
-                self.enter_long = False
-
-
+                if enter_long_or_short == Strategy.ENTER_LONG:
+                    self.enter_long_info = 0, 0, 0
+                    self.is_enter_long = False
+                elif enter_long_or_short == Strategy.ENTER_SHORT:
+                    self.enter_short_info = 0, 0, 0
+                    self.is_enter_short = False
