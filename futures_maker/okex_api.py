@@ -151,7 +151,7 @@ class OKExSwapApi:
             'instrument_id': instrument_id,
             'type': type,
             'price': str(price),
-            'size': str(size)
+            'size': str(int(size))
         })
         order_id = int(result['order_id'])
         bol_result = int(result['result'])

@@ -19,11 +19,15 @@ class Strategy:
     """策略基类"""
     def __init__(self, instrument_id: str):
         self.instrument_id = instrument_id
-        self.open_position_function = None
-        self.close_posion_function = None
-        self.cancel_orders_function = None
         self.api = None
         self.websocket_feed = None
+
+        """可以同时一个开多一个开空 info = (price, size, time)"""
+        self.is_enter_long = False
+        self.enter_long_info = Wad(0), Wad(0), datetime.datetime.now()
+
+        self.is_enter_short = False
+        self.enter_short_info = Wad(0), Wad(0), datetime.datetime.now()
 
         pass
 
@@ -42,6 +46,11 @@ class Strategy:
             for order in self.api.get_orders(self.instrument_id):
                 self.api.cancel_order(self.instrument_id, order.order_id)
 
+    def load_position(self):
+        if self.api is not None:
+            for position in self.api.position(self.instrument_id):
+                self.logger.debug(f"Get Position {position}")
+
 
 class TrandStrategy(Strategy):
 
@@ -54,12 +63,6 @@ class TrandStrategy(Strategy):
         self.swap_ticker_last = {}
         self.spot_candle60s_last = {}
 
-        """可以同时一个开多一个开空 info = (price, size, time)"""
-        self.is_enter_long = False
-        self.enter_long_info = Wad(0), Wad(0), datetime.datetime.now()
-
-        self.is_enter_short = False
-        self.enter_short_info = Wad(0), Wad(0), datetime.datetime.now()
 
     def match_enter_position(self):
         """1、当前现货1分钟线上涨超过0.3%且交易量超过2k，开多"""

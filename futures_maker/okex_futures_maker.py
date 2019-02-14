@@ -64,6 +64,7 @@ class OKExFuturesMaker:
 
     def sync(self):
         # do nothing
+        self.strategy.load_position()
         pass
 
     def shutdown(self):
@@ -73,7 +74,7 @@ class OKExFuturesMaker:
     def main(self):
         with Lifecycle() as lifecycle:
             lifecycle.initial_delay(10)
-            lifecycle.every(15, self.sync)
+            lifecycle.every(5, self.sync)
             lifecycle.on_shutdown(self.shutdown)
 
 
