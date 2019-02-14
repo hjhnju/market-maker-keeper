@@ -149,7 +149,7 @@ class TrandStrategy(Strategy):
         # 2、check if exit position
         exit_long_or_short, exit_price, exit_size = self.match_exit_position()
         if exit_long_or_short > 0 and exit_price > Wad(0) and exit_size > Wad(0):
-            order_id = self.api.place_order(self.instrument_id, 3, exit_price, exit_size)
+            order_id = self.api.place_order(self.instrument_id, exit_long_or_short, exit_price, exit_size)
             if order_id:
                 if enter_long_or_short == Strategy.ENTER_LONG:
                     self.enter_long_info = Wad(0), Wad(0), timestamp

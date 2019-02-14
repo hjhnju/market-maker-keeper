@@ -147,7 +147,7 @@ class OKExSwapApi:
         self.logger.info(f"Placing order ({type}-{type_descs[type]}, size {size} of {instrument_id},"
                          f" price {price})...")
 
-        result = self._http_post("/api/swap/v3/orders", {
+        result = self._http_post("/api/swap/v3/order", {
             'instrument_id': instrument_id,
             'type': type,
             'price': str(price),
