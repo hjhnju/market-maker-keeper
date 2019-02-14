@@ -131,7 +131,7 @@ class OKExSwapApi:
         orders = filter(self._filter_order, result)
         return list(map(self._parse_order, orders))
 
-    def place_order(self, instrument_id: str, type: int, price: Wad, size: Wad) -> int:
+    def place_order(self, instrument_id: str, type: int, price: Wad, size: Wad) -> str:
         """下单
         type	String	是	可填参数：1:开多 2:开空 3:平多 4:平空
         match_price	String	否	是否以对手价下单 0:不是 1:是
@@ -153,7 +153,7 @@ class OKExSwapApi:
             'price': str(price),
             'size': str(int(size))
         })
-        order_id = int(result['order_id'])
+        order_id = str(result['order_id'])
         bol_result = int(result['result'])
 
         self.logger.info(f"Placed order ({type}-{type_descs[type]}, size {size} of {instrument_id},"
