@@ -48,8 +48,23 @@ class Strategy:
 
     def load_position(self):
         if self.api is not None:
-            for position in self.api.position(self.instrument_id):
-                self.logger.debug(f"Get Position {position}")
+            position = self.api.position(self.instrument_id)
+            self.logger.debug(f"Get Position {position}, type {type(position)}")
+            if position is None:
+                self.logger.debug(f"No Position.")
+
+            margin_mode = position['margin_mode']
+            for holding in position['holding']:
+                side = holding['side']
+                price = Wad.from_number(float(holding['avg_cost']))
+                size = Wad.from_number(int(holding['position']))
+                timestamp = datetime.datetime.strptime(holding['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                if side == 'long':
+                    self.is_enter_long = True
+                    self.enter_long_info = price, size, timestamp
+                elif side == 'short':
+                    self.is_enter_short = False
+                    self.enter_short_info = price, size, timestamp
 
 
 class TrandStrategy(Strategy):
@@ -63,7 +78,6 @@ class TrandStrategy(Strategy):
         self.swap_ticker_last = {}
         self.spot_candle60s_last = {}
 
-
     def match_enter_position(self):
         """1、当前现货1分钟线上涨超过0.3%且交易量超过2k，开多"""
 
@@ -72,9 +86,6 @@ class TrandStrategy(Strategy):
 
         enter_price = self.swap_ticker_last['last']
         enter_size = Wad.from_number(10)
-
-        self.spot_candle60s_last['percent'] = Wad.from_number(-0.31)
-        self.spot_candle60s_last['volume'] = Wad.from_number(2000)
 
         self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                           f"last_price:{enter_price}, is_enter_long:{self.is_enter_long}, is_enter_short:{self.is_enter_short}")
