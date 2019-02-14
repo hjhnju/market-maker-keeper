@@ -154,7 +154,7 @@ class OKExSwapApi:
             'size': str(int(size))
         })
         order_id = str(result['order_id'])
-        bol_result = int(result['result'])
+        bol_result = bool(result['result'])
 
         self.logger.info(f"Placed order ({type}-{type_descs[type]}, size {size} of {instrument_id},"
                          f" price {price}) as #{order_id}, result {bol_result}")

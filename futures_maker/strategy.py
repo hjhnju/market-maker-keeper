@@ -73,7 +73,7 @@ class TrandStrategy(Strategy):
         enter_price = self.swap_ticker_last['last']
         enter_size = Wad.from_number(10)
 
-        self.spot_candle60s_last['percent'] = Wad.from_number(0.31)
+        self.spot_candle60s_last['percent'] = Wad.from_number(-0.31)
         self.spot_candle60s_last['volume'] = Wad.from_number(2000)
 
         self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
