@@ -85,7 +85,7 @@ class OKExSwapApi:
         GET /api/swap/v3/BTC-USD-SWAP/position
         """
         assert(isinstance(instrument_id, str))
-        return self._http_get(f"/api/swap/v3/instruments/{instrument_id}/position")
+        return self._http_get(f"/api/swap/v3/{instrument_id}/position")
 
     def get_accounts(self, instrument_id: str) -> dict:
         """单个币种合约账户信息
