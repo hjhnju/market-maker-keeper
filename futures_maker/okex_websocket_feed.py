@@ -89,7 +89,7 @@ class OkexWebSocketFeed:
         try:
             if callable(self._callback):
                 self._callback(message_dict)
-        except (RuntimeError,IndexError) as e:
+        except (RuntimeError, IndexError) as e:
             self.logger.warning(f"callback process error: {e}")
 
     def _on_error(self, ws, error):

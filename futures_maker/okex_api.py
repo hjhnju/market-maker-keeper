@@ -222,8 +222,9 @@ class OKExSwapApi:
         except Exception:
             raise Exception(f"OKCoin API invalid JSON response: {OKExSwapApi._http_response_summary(result)}")
 
-        if check_result:
-            if 'error_code' in data:
+        if check_result and 'error_code' in data:
+            error_code = int(data['error_code'])
+            if error_code > 0:
                 raise Exception(f"OKCoin API negative response: {OKExSwapApi._http_response_summary(result)}")
 
         return data
