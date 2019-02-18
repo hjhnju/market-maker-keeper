@@ -235,7 +235,7 @@ class OKExSwapApi:
         return f"{response.status_code} {response.reason} ({text})"
 
     def _get_timestamp(self):
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         t = now.isoformat()
         return t + "Z"
 
