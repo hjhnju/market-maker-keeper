@@ -129,7 +129,7 @@ class OKExSwapApi:
         result = self._http_get(f"/api/swap/v3/orders/{instrument_id}", 'status=0')
 
         self.logger.info(f"Get orders {result}")
-        orders = filter(self._filter_order, result)
+        orders = filter(self._filter_order, result['order_info'])
         return list(map(self._parse_order, orders))
 
     def place_order(self, instrument_id: str, type: int, price: Wad, size: Wad) -> str:
