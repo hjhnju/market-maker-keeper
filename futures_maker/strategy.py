@@ -101,7 +101,7 @@ class TrandStrategy(Strategy):
         if 'percent' not in self.spot_candle60s_last.keys():
             return 0, Wad(0), Wad(0)
 
-        enter_size = Wad.from_number(20)
+        enter_size = Wad.from_number(50)
 
         self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                           f"last_price:{self.swap_ticker_last['last']}, best_bid:{self.swap_ticker_last['best_bid']}, best_ask:{self.swap_ticker_last['best_ask']}"
@@ -195,11 +195,10 @@ class TrandStrategy(Strategy):
         # 2、check if exit position
         exit_long_or_short, exit_price, exit_size = self.match_exit_position()
         if exit_long_or_short > 0 and exit_price > Wad(0) and exit_size > Wad(0):
-            order_id = self.api.place_order(self.instrument_id, exit_long_or_short, exit_price, exit_size)
-            if order_id:
-                if enter_long_or_short == Strategy.ENTER_LONG:
-                    self.enter_long_info = Wad(0), Wad(0), timestamp
-                    self.is_enter_long = False
-                elif enter_long_or_short == Strategy.ENTER_SHORT:
-                    self.enter_short_info = Wad(0), Wad(0), timestamp
-                    self.is_enter_short = False
+            if enter_long_or_short == Strategy.ENTER_LONG:
+                self.enter_long_info = Wad(0), Wad(0), timestamp
+                self.is_enter_long = False
+            elif enter_long_or_short == Strategy.ENTER_SHORT:
+                self.enter_short_info = Wad(0), Wad(0), timestamp
+                self.is_enter_short = False
+            self.api.place_order(self.instrument_id, exit_long_or_short, exit_price, exit_size)

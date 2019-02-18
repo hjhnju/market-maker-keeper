@@ -147,19 +147,23 @@ class OKExSwapApi:
         self.logger.info(f"Placing order ({type}-{type_descs[type]}, size {size} of {instrument_id},"
                          f" price {price})...")
 
-        result = self._http_post("/api/swap/v3/order", {
-            'instrument_id': instrument_id,
-            'type': type,
-            'price': str(price),
-            'size': str(int(size))
-        })
-        order_id = str(result['order_id'])
-        bol_result = bool(result['result'])
+        try:
+            result = self._http_post("/api/swap/v3/order", {
+                'instrument_id': instrument_id,
+                'type': type,
+                'price': str(price),
+                'size': str(int(size))
+            })
+            order_id = str(result['order_id'])
+            bol_result = bool(result['result'])
 
-        self.logger.info(f"Placed order ({type}-{type_descs[type]}, size {size} of {instrument_id},"
+            self.logger.info(f"Placed order ({type}-{type_descs[type]}, size {size} of {instrument_id},"
                          f" price {price}) as #{order_id}, result {bol_result}")
 
-        return order_id
+            return order_id
+        except:
+            return -1
+
 
     def cancel_order(self, instrument_id: str, order_id: int) -> bool:
         """撤销之前下的未完成订单。
