@@ -63,8 +63,8 @@ class OKExFuturesMaker:
         self.okex_websocket_feed.set_callback(self.strategy.run)
 
     def sync(self):
-        # do nothing
         self.strategy.load_position()
+        self.strategy.cancel_unfill_orders()
         pass
 
     def shutdown(self):

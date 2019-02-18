@@ -49,6 +49,9 @@ class Strategy:
                 self.api.cancel_order(self.instrument_id, order.order_id)
 
     def load_position(self):
+        """加载持仓信息"""
+        if self.api is None:
+            return
 
         timestamp = datetime.datetime.now()
         is_enter_long = False
@@ -56,29 +59,29 @@ class Strategy:
         is_enter_short = False
         enter_short_info = Wad(0), Wad(0), timestamp
 
-        if self.api is not None:
-            position = self.api.position(self.instrument_id)
-            self.logger.debug(f"Get Position {position}, type {type(position)}")
-            if position is None:
-                self.logger.debug(f"No Position.")
-
-            margin_mode = position['margin_mode']
-            for holding in position['holding']:
-                side = holding['side']
-                price = Wad.from_number(float(holding['avg_cost']))
-                size = Wad.from_number(int(holding['position']))
-                timestamp = datetime.datetime.strptime(holding['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
-                if side == 'long':
-                    is_enter_long = True
-                    enter_long_info = price, size, timestamp
-                elif side == 'short':
-                    is_enter_short = True
-                    enter_short_info = price, size, timestamp
+        position = self.api.position(self.instrument_id)
+        margin_mode = position['margin_mode']
+        for holding in position['holding']:
+            side = holding['side']
+            price = Wad.from_number(float(holding['avg_cost']))
+            size = Wad.from_number(int(holding['position']))
+            realized_pnl = Wad.from_number(float(holding['realized_pnl']))
+            timestamp = datetime.datetime.strptime(holding['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            if side == 'long':
+                is_enter_long = True
+                enter_long_info = price, size, timestamp
+            elif side == 'short':
+                is_enter_short = True
+                enter_short_info = price, size, timestamp
 
         self.is_enter_long = is_enter_long
         self.enter_long_info = enter_long_info
         self.is_enter_short = is_enter_short
         self.enter_short_info = enter_short_info
+
+        self.logger.debug(f"Load position  {position}, "
+                          f"is_enter_long: {self.is_enter_long}, enter_long_info: {self.enter_short_info}, "
+                          f"is_enter_short: {self.is_enter_short}, enter_short_info: {self.enter_short_info}")
 
 
 class TrandStrategy(Strategy):
@@ -98,15 +101,16 @@ class TrandStrategy(Strategy):
         if 'percent' not in self.spot_candle60s_last.keys():
             return 0, Wad(0), Wad(0)
 
-        enter_price = self.swap_ticker_last['last']
         enter_size = Wad.from_number(20)
 
         self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
-                          f"last_price:{enter_price}, is_enter_long:{self.is_enter_long}, is_enter_short:{self.is_enter_short}")
+                          f"last_price:{self.swap_ticker_last['last']}, best_bid:{self.swap_ticker_last['best_bid']}, best_ask:{self.swap_ticker_last['best_ask']}"
+                          f"is_enter_long:{self.is_enter_long}, is_enter_short:{self.is_enter_short}")
 
         if self.is_enter_long is False and \
                 self.spot_candle60s_last['percent'] >= Wad.from_number(0.003) and \
                 self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
+            enter_price = self.swap_ticker_last['best_ask']
             self.logger.info(f"Match enter long. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_LONG, enter_price, enter_size
@@ -114,6 +118,7 @@ class TrandStrategy(Strategy):
         if not self.is_enter_short and \
                 self.spot_candle60s_last['percent'] <= Wad.from_number(-0.003) and \
                 self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
+            enter_price = self.swap_ticker_last['best_bid']
             self.logger.info(f"Match enter short. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_SHORT, enter_price, enter_size
@@ -131,10 +136,23 @@ class TrandStrategy(Strategy):
             gap_price_percent = (float(exit_price) - float(enter_price)) * self.leverage / float(enter_price)
             gap_time = datetime.datetime.now() - enter_time
 
-            self.logger.debug(f"gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, exit_price:{exit_price}")
+            self.logger.debug(f"Check if match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, best_bid:{exit_price}")
             if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time >= 3600) or (gap_price_percent >= 0.1 and gap_time >= 1800):
                 self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, exit_price:{exit_price}")
                 return Strategy.EXIT_LONG, exit_price, exit_size
+
+        # check short position
+        if self.is_enter_short:
+            enter_price, enter_size, enter_time = self.enter_short_info
+            exit_price = self.swap_ticker_last['best_ask']
+            exit_size = enter_size
+            gap_price_percent = - (float(exit_price) - float(enter_price)) * self.leverage / float(enter_price)
+            gap_time = datetime.datetime.now() - enter_time
+
+            self.logger.debug(f"Check if match exit short. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, best_ask:{exit_price}")
+            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time >= 3600) or (gap_price_percent >= 0.1 and gap_time >= 1800):
+                self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, exit_price:{exit_price}")
+                return Strategy.EXIT_SHORT, exit_price, exit_size
 
         # (exit_long_or_short, exit_price, exit_size)
         return 0, Wad(0), Wad(0)

@@ -78,11 +78,9 @@ class OkexWebSocketFeed:
                 self.logger.debug(f"ReceivedMsg '{message}', do nothing")
                 return
 
-            # save data for analyse
-            receive_time = datetime.datetime.now().isoformat() + 'Z'
-            receive_time_utc = datetime.datetime.utcnow().isoformat() + 'Z'
-
-            self.logger.debug(f"[WebSocket Message]{receive_time}\t{receive_time_utc}\t{message_dict}\n")
+            # receive_time = datetime.datetime.now().isoformat() + 'Z'
+            # receive_time_utc = datetime.datetime.utcnow().isoformat() + 'Z'
+            # self.logger.debug(f"[WebSocket Message]{receive_time}\t{receive_time_utc}\t{message_dict}\n")
         except:
             self.logger.warning(f"WebSocket '{self._sanitized_url}' received invalid message: '{message}'")
 
