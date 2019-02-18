@@ -128,6 +128,7 @@ class OKExSwapApi:
 
         result = self._http_get(f"/api/swap/v3/orders/{instrument_id}", 'status=0')
 
+        self.logger.info(f"Get orders {result}")
         orders = filter(self._filter_order, result)
         return list(map(self._parse_order, orders))
 
@@ -163,7 +164,6 @@ class OKExSwapApi:
             return order_id
         except:
             return -1
-
 
     def cancel_order(self, instrument_id: str, order_id: int) -> bool:
         """撤销之前下的未完成订单。
