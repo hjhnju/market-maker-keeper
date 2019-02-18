@@ -126,7 +126,7 @@ class OKExSwapApi:
         """
         assert(isinstance(instrument_id, str))
 
-        result = self._http_get("/api/swap/v3/orders/{instrument_id}", 'status=0,1')
+        result = self._http_get("/api/swap/v3/orders/{instrument_id}", 'status=0')
 
         orders = filter(self._filter_order, result)
         return list(map(self._parse_order, orders))

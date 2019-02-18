@@ -136,9 +136,9 @@ class TrandStrategy(Strategy):
             gap_price_percent = (float(exit_price) - float(enter_price)) * self.leverage / float(enter_price)
             gap_time = datetime.datetime.now() - enter_time
 
-            self.logger.debug(f"Check if match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, best_bid:{exit_price}")
-            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time >= 3600) or (gap_price_percent >= 0.1 and gap_time >= 1800):
-                self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, exit_price:{exit_price}")
+            self.logger.debug(f"Check if match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, best_bid:{exit_price}")
+            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time.seconds >= 900):
+                self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, exit_price:{exit_price}")
                 return Strategy.EXIT_LONG, exit_price, exit_size
 
         # check short position
@@ -149,9 +149,9 @@ class TrandStrategy(Strategy):
             gap_price_percent = - (float(exit_price) - float(enter_price)) * self.leverage / float(enter_price)
             gap_time = datetime.datetime.now() - enter_time
 
-            self.logger.debug(f"Check if match exit short. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, best_ask:{exit_price}")
-            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time >= 3600) or (gap_price_percent >= 0.1 and gap_time >= 1800):
-                self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, exit_price:{exit_price}")
+            self.logger.debug(f"Check if match exit short. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, best_ask:{exit_price}")
+            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time.seconds >= 900):
+                self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, exit_price:{exit_price}")
                 return Strategy.EXIT_SHORT, exit_price, exit_size
 
         # (exit_long_or_short, exit_price, exit_size)
