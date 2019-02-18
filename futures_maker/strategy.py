@@ -105,14 +105,14 @@ class TrandStrategy(Strategy):
                           f"last_price:{enter_price}, is_enter_long:{self.is_enter_long}, is_enter_short:{self.is_enter_short}")
 
         if self.is_enter_long is False and \
-                self.spot_candle60s_last['percent'] >= Wad.from_number(0.03) and \
+                self.spot_candle60s_last['percent'] >= Wad.from_number(0.003) and \
                 self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
             self.logger.info(f"Match enter long. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_LONG, enter_price, enter_size
 
         if not self.is_enter_short and \
-                self.spot_candle60s_last['percent'] <= Wad.from_number(-0.03) and \
+                self.spot_candle60s_last['percent'] <= Wad.from_number(-0.003) and \
                 self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
             self.logger.info(f"Match enter short. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
@@ -132,7 +132,7 @@ class TrandStrategy(Strategy):
             gap_time = datetime.datetime.now() - enter_time
 
             self.logger.debug(f"gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, exit_price:{exit_price}")
-            if gap_price_percent > 1.0 or (gap_price_percent > 0.1 and gap_time > 3600):
+            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time >= 3600) or (gap_price_percent >= 0.1 and gap_time >= 1800):
                 self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time}, exit_price:{exit_price}")
                 return Strategy.EXIT_LONG, exit_price, exit_size
 
