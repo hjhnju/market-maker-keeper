@@ -21,6 +21,8 @@ class Strategy:
         self.instrument_id = instrument_id
         self.api = None
         self.websocket_feed = None
+        # 杠杆倍数
+        self.leverage = 30
 
         """可以同时一个开多一个开空 info = (price, size, time)"""
         self.is_enter_long = False
@@ -47,6 +49,13 @@ class Strategy:
                 self.api.cancel_order(self.instrument_id, order.order_id)
 
     def load_position(self):
+
+        timestamp = datetime.datetime.now()
+        is_enter_long = False
+        enter_long_info = Wad(0), Wad(0), timestamp
+        is_enter_short = False
+        enter_short_info = Wad(0), Wad(0), timestamp
+
         if self.api is not None:
             position = self.api.position(self.instrument_id)
             self.logger.debug(f"Get Position {position}, type {type(position)}")
@@ -60,11 +69,16 @@ class Strategy:
                 size = Wad.from_number(int(holding['position']))
                 timestamp = datetime.datetime.strptime(holding['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
                 if side == 'long':
-                    self.is_enter_long = True
-                    self.enter_long_info = price, size, timestamp
+                    is_enter_long = True
+                    enter_long_info = price, size, timestamp
                 elif side == 'short':
-                    self.is_enter_short = False
-                    self.enter_short_info = price, size, timestamp
+                    is_enter_short = True
+                    enter_short_info = price, size, timestamp
+
+        self.is_enter_long = is_enter_long
+        self.enter_long_info = enter_long_info
+        self.is_enter_short = is_enter_short
+        self.enter_short_info = enter_short_info
 
 
 class TrandStrategy(Strategy):
@@ -85,7 +99,7 @@ class TrandStrategy(Strategy):
             return 0, Wad(0), Wad(0)
 
         enter_price = self.swap_ticker_last['last']
-        enter_size = Wad.from_number(10)
+        enter_size = Wad.from_number(20)
 
         self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                           f"last_price:{enter_price}, is_enter_long:{self.is_enter_long}, is_enter_short:{self.is_enter_short}")
@@ -114,11 +128,11 @@ class TrandStrategy(Strategy):
             enter_price, enter_size, enter_time = self.enter_long_info
             exit_price = self.swap_ticker_last['best_bid']
             exit_size = enter_size
-            gap_price = (exit_price - enter_price) * Wad.from_number(30) / enter_price
+            gap_price = (float(exit_price) - float(enter_price)) * self.leverage / float(enter_price)
             gap_time = datetime.datetime.now() - enter_time
 
             self.logger.debug(f"gap_price:{gap_price}, gap_time:{gap_time}, exit_price:{exit_price}")
-            if gap_price > Wad.from_number(0.3) or (gap_price > Wad.from_number(0.1) and gap_time > 1800):
+            if gap_price > 1.0 or (gap_price > 0.1 and gap_time > 3600):
                 self.logger.info(f"Match exit long. gap_price:{gap_price}, gap_time:{gap_time}, exit_price:{exit_price}")
                 return Strategy.EXIT_LONG, exit_price, exit_size
 
