@@ -165,12 +165,12 @@ class OKExSwapApi:
         except:
             return -1
 
-    def cancel_order(self, instrument_id: str, order_id: int) -> bool:
+    def cancel_order(self, instrument_id: str, order_id: str) -> bool:
         """撤销之前下的未完成订单。
         POST /api/swap/v3/cancel_order/BTC-USD-SWAP/64-2b-17122f911-3
         """
         assert(isinstance(instrument_id, str))
-        assert(isinstance(order_id, int))
+        assert(isinstance(order_id, str))
 
         self.logger.info(f"Cancelling order #{order_id}...")
 
