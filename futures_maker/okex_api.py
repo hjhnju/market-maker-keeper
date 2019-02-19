@@ -174,7 +174,7 @@ class OKExSwapApi:
 
         self.logger.info(f"Cancelling order #{order_id}...")
 
-        result = self._http_post(f"/api/swap/v3/cancel_order/{instrument_id}/{order_id}")
+        result = self._http_post(f"/api/swap/v3/cancel_order/{instrument_id}/{order_id}", {})
 
         self.logger.info(f"Cancel order ({order_id} of {instrument_id}, result {result}")
 
