@@ -101,23 +101,23 @@ class TrandStrategy(Strategy):
         if 'percent' not in self.spot_candle60s_last.keys():
             return 0, Wad(0), Wad(0)
 
-        enter_size = Wad.from_number(50)
+        enter_size = Wad.from_number(10)
 
         self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                           f"last_price:{self.swap_ticker_last['last']}, best_bid:{self.swap_ticker_last['best_bid']}, best_ask:{self.swap_ticker_last['best_ask']}"
                           f"is_enter_long:{self.is_enter_long}, is_enter_short:{self.is_enter_short}")
 
         if self.is_enter_long is False and \
-                self.spot_candle60s_last['percent'] >= Wad.from_number(0.003) and \
-                self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
+                self.spot_candle60s_last['percent'] >= Wad.from_number(0.002) and \
+                self.spot_candle60s_last['volume'] >= Wad.from_number(1000):
             enter_price = self.swap_ticker_last['best_ask']
             self.logger.info(f"Match enter long. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_LONG, enter_price, enter_size
 
         if not self.is_enter_short and \
-                self.spot_candle60s_last['percent'] <= Wad.from_number(-0.003) and \
-                self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
+                self.spot_candle60s_last['percent'] <= Wad.from_number(-0.002) and \
+                self.spot_candle60s_last['volume'] >= Wad.from_number(1000):
             enter_price = self.swap_ticker_last['best_bid']
             self.logger.info(f"Match enter short. percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
@@ -137,7 +137,7 @@ class TrandStrategy(Strategy):
             gap_time = datetime.datetime.utcnow() - enter_time
 
             self.logger.debug(f"Check if match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, best_bid:{exit_price}")
-            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time.seconds >= 900) or (gap_time.seconds >= 3600):
+            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time.seconds >= 60) or (gap_time.seconds >= 3600):
                 self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, exit_price:{exit_price}")
                 return Strategy.EXIT_LONG, exit_price, exit_size
 
@@ -150,7 +150,7 @@ class TrandStrategy(Strategy):
             gap_time = datetime.datetime.utcnow() - enter_time
 
             self.logger.debug(f"Check if match exit short. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, best_ask:{exit_price}")
-            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time.seconds >= 900) or (gap_time.seconds >= 3600):
+            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.01 and gap_time.seconds >= 60) or (gap_time.seconds >= 3600):
                 self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, exit_price:{exit_price}")
                 return Strategy.EXIT_SHORT, exit_price, exit_size
 
