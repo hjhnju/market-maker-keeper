@@ -74,7 +74,7 @@ class OKExFuturesMaker:
     def main(self):
         with Lifecycle() as lifecycle:
             lifecycle.initial_delay(10)
-            lifecycle.every(5, self.sync)
+            lifecycle.every(12, self.sync)
             lifecycle.on_shutdown(self.shutdown)
 
 
