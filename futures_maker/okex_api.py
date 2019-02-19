@@ -13,9 +13,9 @@ from futures_maker.numeric import Wad
 
 
 class Order:
-    def __init__(self, order_id: int, timestamp: str, instrument_id: str,
+    def __init__(self, order_id: str, timestamp: str, instrument_id: str,
                  type: int, price: Wad, size: Wad, filled_qty: Wad, fee: float, status: int, contract_val: float):
-        assert(isinstance(order_id, int))
+        assert(isinstance(order_id, str))
         assert(isinstance(timestamp, str))
         assert(isinstance(instrument_id, str))
         assert(isinstance(type, int))
@@ -203,7 +203,7 @@ class OKExSwapApi:
     def _parse_order(item: dict) -> Order:
         assert(isinstance(item, dict))
 
-        return Order(order_id=int(item['order_id']),
+        return Order(order_id=str(item['order_id']),
                      timestamp=str(item['timestamp']),
                      instrument_id=str(item['instrument_id']),
                      type=int(item['type']),
