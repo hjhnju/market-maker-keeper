@@ -23,6 +23,8 @@ class Strategy:
         self.websocket_feed = None
         # 杠杆倍数
         self.leverage = 30
+        self.do_long = True
+        self.do_short = False
 
         """可以同时一个开多一个开空 info = (price, size, time)"""
         self.is_enter_long = False
@@ -101,13 +103,13 @@ class TrandStrategy(Strategy):
         if 'percent' not in self.spot_candle60s_last.keys():
             return 0, Wad(0), Wad(0)
 
-        enter_size = Wad.from_number(10)
+        enter_size = Wad.from_number(100)
 
         self.logger.debug(f"percent:{self.spot_candle60s_last['percent']}, volume: {self.spot_candle60s_last['volume']}, "
                           f"last_price:{self.swap_ticker_last['last']}, best_bid:{self.swap_ticker_last['best_bid']}, best_ask:{self.swap_ticker_last['best_ask']}"
                           f"is_enter_long:{self.is_enter_long}, is_enter_short:{self.is_enter_short}")
 
-        if self.is_enter_long is False and \
+        if self.do_long and (not self.is_enter_long) and \
                 self.spot_candle60s_last['percent'] >= Wad.from_number(0.003) and \
                 self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
             enter_price = self.swap_ticker_last['best_ask']
@@ -115,7 +117,7 @@ class TrandStrategy(Strategy):
                              f"enter_price:{enter_price}, enter_size:{enter_size}")
             return Strategy.ENTER_LONG, enter_price, enter_size
 
-        if not self.is_enter_short and \
+        if self.do_short and (not self.is_enter_short) and \
                 self.spot_candle60s_last['percent'] <= Wad.from_number(-0.003) and \
                 self.spot_candle60s_last['volume'] >= Wad.from_number(2000):
             enter_price = self.swap_ticker_last['best_bid']
