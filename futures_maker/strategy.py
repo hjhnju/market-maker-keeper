@@ -139,7 +139,7 @@ class TrandStrategy(Strategy):
             gap_time = datetime.datetime.utcnow() - enter_time
 
             self.logger.debug(f"Check if match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, best_bid:{exit_price}")
-            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.05 and gap_time.seconds >= 60) or (gap_time.seconds >= 3600):
+            if gap_price_percent >= 2.0:
                 self.logger.info(f"Match exit long. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, exit_price:{exit_price}")
                 return Strategy.EXIT_LONG, exit_price, exit_size
 
@@ -152,7 +152,7 @@ class TrandStrategy(Strategy):
             gap_time = datetime.datetime.utcnow() - enter_time
 
             self.logger.debug(f"Check if match exit short. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, best_ask:{exit_price}")
-            if gap_price_percent >= 1.0 or (gap_price_percent >= 0.05 and gap_time.seconds >= 60) or (gap_time.seconds >= 3600):
+            if gap_price_percent >= 2.0:
                 self.logger.info(f"Match exit short. gap_price_percent:{gap_price_percent}, gap_time:{gap_time.seconds}, "
                                  f"enter_price:{enter_price}, exit_price:{exit_price}")
                 return Strategy.EXIT_SHORT, exit_price, exit_size
