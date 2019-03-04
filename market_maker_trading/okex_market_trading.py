@@ -111,6 +111,8 @@ class OkexMarketTrading:
         self.order_book_manager.start()
 
     def main(self):
+        balances = self.okex_api.get_balances()
+        self.logger.info(f"balances:{balances}")
         with Lifecycle() as lifecycle:
             lifecycle.initial_delay(10)
             lifecycle.every(5, self.synchronize_orders)
