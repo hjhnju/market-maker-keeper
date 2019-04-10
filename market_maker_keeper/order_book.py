@@ -272,6 +272,7 @@ class OrderBookManager:
             for order in orders[i:j]:
                 self._executor.submit(self._thread_cancel_order(order.order_id, partial(self.cancel_order_function, order)))
             i = j
+            time.sleep(5)
 
     def replace_orders(self, orders: list, new_orders: list):
         """Replaces existing orders with new ones.
