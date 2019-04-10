@@ -268,7 +268,7 @@ class OrderBookManager:
 
         i = 0
         while i < len(orders):
-            j = i + 10
+            j = i + 5
             for order in orders[i:j]:
                 self._executor.submit(self._thread_cancel_order(order.order_id, partial(self.cancel_order_function, order)))
             i = j
