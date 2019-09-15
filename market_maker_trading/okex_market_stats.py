@@ -24,7 +24,7 @@ class OkexMarketStats:
     logger = logging.getLogger()
 
     def __init__(self, args: list):
-        parser = argparse.ArgumentParser(prog='okex-market-trading')
+        parser = argparse.ArgumentParser(prog='okex-market-stats')
 
         parser.add_argument("--okex-api-server", type=str, default="https://www.okex.com",
                             help="Address of the OKEX API server (default: 'https://www.okex.com')")
@@ -46,12 +46,6 @@ class OkexMarketStats:
 
         parser.add_argument("--config", type=str, required=True,
                             help="Bands configuration file")
-
-        parser.add_argument("--price-feed", type=str, required=True,
-                            help="Source of price feed")
-
-        parser.add_argument("--price-feed-expiry", type=int, default=120,
-                            help="Maximum age of the price feed (in seconds, default: 120)")
 
         parser.add_argument("--spread-feed", type=str,
                             help="Source of spread feed")
@@ -79,9 +73,6 @@ class OkexMarketStats:
 
         self.arguments = parser.parse_args(args)
         setup_logging(self.arguments)
-
-        self.bands_config = ReloadableConfig(self.arguments.config)
-        self.price_feed = PriceFeedFactory().create_price_feed(self.arguments)
 
         self.order_history_reporter = create_order_history_reporter(self.arguments)
 
