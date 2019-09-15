@@ -150,8 +150,30 @@ class OkexMarketTrading:
 
         # 交易触发规则：随机触发。产生一个随机数，若命中概率则交易
         current_time = time.strftime("%H")
-        freq_dict = {'00':45, '01':40, '02':18, '03':10, '04':10, '05':16, '06':65, '07':200, '08':150, '09':145, '10':148, '11':130,
-                     '12':185, '13':130, '14':145, '15':160, '16':225, '17':130, '18':145, '19':175, '20':138, '21':145, '22':100, '23':80}
+        freq_dict = {'00': np.random.randint(50, 200),
+                     '01': np.random.randint(50, 100),
+                     '02': np.random.randint(10, 100),
+                     '03': np.random.randint(10, 50),
+                     '04': np.random.randint(10, 50),
+                     '05': np.random.randint(10, 50),
+                     '06': np.random.randint(50, 100),
+                     '07': np.random.randint(100, 200),
+                     '08': np.random.randint(100, 200),
+                     '09': np.random.randint(100, 300),
+                     '10': np.random.randint(100, 300),
+                     '11': np.random.randint(100, 300),
+                     '12': np.random.randint(100, 300),
+                     '13': np.random.randint(100, 300),
+                     '14': np.random.randint(100, 300),
+                     '15': np.random.randint(100, 300),
+                     '16': np.random.randint(100, 300),
+                     '17': np.random.randint(100, 300),
+                     '18': np.random.randint(100, 300),
+                     '19': np.random.randint(100, 300),
+                     '20': np.random.randint(100, 300),
+                     '21': np.random.randint(100, 200),
+                     '22': np.random.randint(100, 200),
+                     '23': np.random.randint(100, 200)}
         freq = freq_dict[current_time]
         hit_number = np.random.random()
         hit_range = freq / (12 * 60.0)
