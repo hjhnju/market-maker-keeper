@@ -389,7 +389,7 @@ class OrderBookManager:
                 orders = self.get_orders_function()
                 balances = self.get_balances_function() if self.get_balances_function is not None else None
 
-                self.logger.debug(f"Fetched orders {orders}")
+                # self.logger.debug(f"Fetched orders {orders}")
 
                 if self.order_history_reporter:
                     orders_buy = self.buy_filter_function(orders)
